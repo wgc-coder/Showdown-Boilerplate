@@ -63,7 +63,7 @@ class Pokemon {
 		this.beingCalledBack = false;
 		this.isActive = false;
 		this.activeTurns = 0;
-		/** Has this pokemon's Start events run yet? */
+		/** Have this pokemon's Start events run yet? */
 		this.isStarted = false;
 		this.transformed = false;
 		this.duringMove = false;
@@ -345,7 +345,7 @@ class Pokemon {
 			}
 			if (target.side.active.length > 1) {
 				if (!move.flags['charge'] || this.volatiles['twoturnmove'] ||
-						(move.id === 'solarbeam' && this.battle.isWeather(['sunnyday', 'desolateland'])) ||
+						(move.id.startsWith('solarb') && this.battle.isWeather(['sunnyday', 'desolateland'])) ||
 						(this.hasItem('powerherb') && move.id !== 'skydrop')) {
 					target = this.battle.priorityEvent('RedirectTarget', this, this, move, target);
 				}
@@ -756,7 +756,6 @@ class Pokemon {
 			source: source,
 			effect: effect,
 		});
-		this.battle.runEvent('BeforeFaint', this, source, effect);
 		return d;
 	}
 	damage(d, source, effect) {
@@ -1194,7 +1193,7 @@ class Pokemon {
 	}
 	isGrounded(negateImmunity) {
 		if ('gravity' in this.battle.pseudoWeather) return true;
-		if ('ingrain' in this.volatiles) return true;
+		if ('ingrain' in this.volatiles && this.battle.gen >= 4) return true;
 		if ('smackdown' in this.volatiles) return true;
 		let item = (this.ignoringItem() ? '' : this.item);
 		if (item === 'ironball') return true;

@@ -1,14 +1,6 @@
 'use strict';
 
 exports.BattleItems = {
-	abomasite: {
-		inherit: true,
-		isUnreleased: false,
-	},
-	aggronite: {
-		inherit: true,
-		isUnreleased: false,
-	},
 	aguavberry: {
 		inherit: true,
 		onUpdate: function (pokemon) {
@@ -24,18 +16,6 @@ exports.BattleItems = {
 		},
 		desc: "Restores 1/8 max HP at 1/2 max HP or less; confuses if -SpD Nature. Single use.",
 	},
-	altarianite: {
-		inherit: true,
-		isUnreleased: false,
-	},
-	ampharosite: {
-		inherit: true,
-		isUnreleased: false,
-	},
-	banettite: {
-		inherit: true,
-		isUnreleased: false,
-	},
 	belueberry: {
 		inherit: true,
 		isUnreleased: false,
@@ -44,23 +24,11 @@ exports.BattleItems = {
 		inherit: true,
 		desc: "Holder gains 1.3x HP from draining moves, Aqua Ring, Ingrain, and Leech Seed.",
 	},
-	blazikenite: {
-		inherit: true,
-		isUnreleased: false,
-	},
-	cameruptite: {
-		inherit: true,
-		isUnreleased: false,
-	},
 	cornnberry: {
 		inherit: true,
 		isUnreleased: false,
 	},
 	custapberry: {
-		inherit: true,
-		isUnreleased: false,
-	},
-	diancite: {
 		inherit: true,
 		isUnreleased: false,
 	},
@@ -86,14 +54,6 @@ exports.BattleItems = {
 			}
 		},
 		desc: "Restores 1/8 max HP at 1/2 max HP or less; confuses if -Atk Nature. Single use.",
-	},
-	galladite: {
-		inherit: true,
-		isUnreleased: false,
-	},
-	gardevoirite: {
-		inherit: true,
-		isUnreleased: false,
 	},
 	iapapaberry: {
 		inherit: true,
@@ -121,21 +81,9 @@ exports.BattleItems = {
 			}
 		},
 	},
-	latiasite: {
-		inherit: true,
-		isUnreleased: false,
-	},
-	latiosite: {
-		inherit: true,
-		isUnreleased: false,
-	},
 	lightclay: {
 		inherit: true,
 		desc: "Holder's use of Light Screen or Reflect lasts 8 turns instead of 5.",
-	},
-	lopunnite: {
-		inherit: true,
-		isUnreleased: false,
 	},
 	machobrace: {
 		inherit: true,
@@ -157,10 +105,6 @@ exports.BattleItems = {
 		desc: "Restores 1/8 max HP at 1/2 max HP or less; confuses if -Spe Nature. Single use.",
 	},
 	magostberry: {
-		inherit: true,
-		isUnreleased: false,
-	},
-	manectite: {
 		inherit: true,
 		isUnreleased: false,
 	},
@@ -207,19 +151,7 @@ exports.BattleItems = {
 			}
 		},
 	},
-	sceptilite: {
-		inherit: true,
-		isUnreleased: false,
-	},
 	spelonberry: {
-		inherit: true,
-		isUnreleased: false,
-	},
-	swampertite: {
-		inherit: true,
-		isUnreleased: false,
-	},
-	tyranitarite: {
 		inherit: true,
 		isUnreleased: false,
 	},

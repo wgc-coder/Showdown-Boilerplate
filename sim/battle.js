@@ -12,14 +12,15 @@ const Sim = require('./');
 
 class Battle extends Dex.ModdedDex {
 	/**
-	 * Initialises a Battle.
-	 *
 	 * @param {object} format
 	 * @param {boolean} rated
 	 * @param {Function} send
 	 * @param {PRNG} [maybePrng]
 	 */
-	init(format, rated = false, send = (() => {}), prng = new PRNG()) {
+	constructor(format, rated = false, send = (() => {}), prng = new PRNG()) {
+		super(format.mod);
+		Object.assign(this, this.data.Scripts);
+
 		this.log = [];
 		/** @type {Sim.Side[]} */
 		this.sides = [null, null];
@@ -30,8 +31,6 @@ class Battle extends Dex.ModdedDex {
 
 		this.format = toId(format);
 		this.formatData = {id:this.format};
-		Dex.mod(format.mod).getBanlistTable(format); // fill in format ruleset
-		this.ruleset = format.ruleset;
 
 		this.effect = {id:''};
 		this.effectData = {id:''};
@@ -74,6 +73,7 @@ class Battle extends Dex.ModdedDex {
 
 		this.prng = prng;
 		this.prngSeed = this.prng.startingSeed.slice();
+		this.teamGenerator = null;
 	}
 
 	static logReplay(data, isReplay) {
@@ -217,8 +217,8 @@ class Battle extends Dex.ModdedDex {
 		return this.getEffect(this.terrain);
 	}
 
-	getFormat() {
-		return this.getEffect(this.format);
+	getFormat(format) {
+		return super.getFormat(format || this.format);
 	}
 	addPseudoWeather(status, source, sourceEffect) {
 		status = this.getEffect(status);
@@ -978,7 +978,6 @@ class Battle extends Dex.ModdedDex {
 			p2request = {active: activeData, side: this.p2.getData()};
 			break;
 		}
-
 		}
 
 		if (p1request) {
@@ -1222,8 +1221,8 @@ class Battle extends Dex.ModdedDex {
 							// to run it again.
 							continue;
 						}
-						let banlistTable = this.getFormat().banlistTable;
-						if (banlistTable && !('illegal' in banlistTable) && !this.getFormat().team) {
+						const ruleTable = this.getRuleTable(this.getFormat());
+						if (!ruleTable.has('-illegal') && !this.getFormat().team) {
 							// hackmons format
 							continue;
 						} else if (abilitySlot === 'H' && template.unreleasedHidden) {
@@ -1231,7 +1230,7 @@ class Battle extends Dex.ModdedDex {
 							continue;
 						}
 						let ability = this.getAbility(abilityName);
-						if (banlistTable && ability.id in banlistTable) continue;
+						if (ruleTable.has('-' + ability.id)) continue;
 						if (pokemon.knownType && !this.getImmunity('trapped', pokemon)) continue;
 						this.singleEvent('FoeMaybeTrapPokemon',
 							ability, {}, pokemon, source);
@@ -1295,8 +1294,8 @@ class Battle extends Dex.ModdedDex {
 			this.sides[i].faintedLastTurn = this.sides[i].faintedThisTurn;
 			this.sides[i].faintedThisTurn = false;
 		}
-		let banlistTable = this.getFormat().banlistTable;
-		if (banlistTable && 'Rule:endlessbattleclause' in banlistTable) {
+		const ruleTable = this.getRuleTable(this.getFormat());
+		if (ruleTable.has('endlessbattleclause')) {
 			if (oneStale) {
 				let activationWarning = '<br />If all active Pok&eacute;mon go in an endless loop, Endless Battle Clause will activate.';
 				if (allStale) activationWarning = '';
@@ -1413,11 +1412,10 @@ class Battle extends Dex.ModdedDex {
 		if (format.onBegin) {
 			format.onBegin.call(this);
 		}
-		if (this.ruleset) {
-			for (let i = 0; i < this.ruleset.length; i++) {
-				this.addPseudoWeather(this.ruleset[i]);
-			}
-		}
+		this.getRuleTable(this.getFormat()).forEach((v, rule) => {
+			if (rule.startsWith('+') || rule.startsWith('-') || rule.startsWith('!')) return;
+			if (this.getFormat(rule).exists) this.addPseudoWeather(rule);
+		});
 
 		if (!this.p1.pokemon[0] || !this.p2.pokemon[0]) {
 			throw new Error('Battle not started: A player has an empty team.');
@@ -1510,9 +1508,6 @@ class Battle extends Dex.ModdedDex {
 			if (!(damage || damage === 0)) {
 				this.debug('damage event failed');
 				return damage;
-			}
-			if (target.illusion && target.hasAbility('Illusion') && effect && effect.effectType === 'Move' && effect.id !== 'confused') {
-				this.singleEvent('End', this.getAbility('Illusion'), target.abilityData, target, source, effect);
 			}
 		}
 		if (damage !== 0) damage = this.clampIntRange(damage, 1);
@@ -1706,9 +1701,7 @@ class Battle extends Dex.ModdedDex {
 		if (!move) {
 			move = {};
 		}
-		if (!move.type) move.type = '???';
-		let type = move.type;
-		// '???' is typeless damage: used for Struggle and Confusion etc
+
 		let category = this.getCategory(move);
 		let defensiveCategory = move.defensiveCategory || category;
 
@@ -1798,7 +1791,16 @@ class Battle extends Dex.ModdedDex {
 		defense = this.runEvent('Modify' + statTable[defenseStat], defender, attacker, move, defense);
 
 		//int(int(int(2 * L / 5 + 2) * A * P / D) / 50);
-		let baseDamage = Math.floor(Math.floor(Math.floor(2 * level / 5 + 2) * basePower * attack / defense) / 50) + 2;
+		let baseDamage = Math.floor(Math.floor(Math.floor(2 * level / 5 + 2) * basePower * attack / defense) / 50);
+
+		// Calculate damage modifiers separately (order differs between generations)
+		return this.modifyDamage(baseDamage, pokemon, target, move, suppressMessages);
+	}
+	modifyDamage(baseDamage, pokemon, target, move, suppressMessages) {
+		if (!move.type) move.type = '???';
+		let type = move.type;
+
+		baseDamage += 2;
 
 		// multi-target modifier (doubles only)
 		if (move.spreadHit) {
@@ -1847,14 +1849,14 @@ class Battle extends Dex.ModdedDex {
 
 		if (move.crit && !suppressMessages) this.add('-crit', target);
 
-		if (pokemon.status === 'brn' && basePower && move.category === 'Physical' && !pokemon.hasAbility('guts')) {
+		if (pokemon.status === 'brn' && move.category === 'Physical' && !pokemon.hasAbility('guts')) {
 			if (this.gen < 6 || move.id !== 'facade') {
 				baseDamage = this.modify(baseDamage, 0.5);
 			}
 		}
 
 		// Generation 5 sets damage to 1 before the final damage modifiers only
-		if (this.gen === 5 && basePower && !Math.floor(baseDamage)) {
+		if (this.gen === 5 && !Math.floor(baseDamage)) {
 			baseDamage = 1;
 		}
 
@@ -1867,7 +1869,7 @@ class Battle extends Dex.ModdedDex {
 			this.add('-message', target.name + " couldn't fully protect itself and got hurt! (placeholder)");
 		}
 
-		if (this.gen !== 5 && basePower && !Math.floor(baseDamage)) {
+		if (this.gen !== 5 && !Math.floor(baseDamage)) {
 			return 1;
 		}
 
@@ -1997,6 +1999,7 @@ class Battle extends Dex.ModdedDex {
 		while (this.faintQueue.length) {
 			faintData = this.faintQueue.shift();
 			if (!faintData.target.fainted) {
+				this.runEvent('BeforeFaint', faintData.target, faintData.source, faintData.effect);
 				this.add('faint', faintData.target);
 				faintData.target.side.pokemonLeft--;
 				this.runEvent('Faint', faintData.target, faintData.source, faintData.effect);
@@ -2607,6 +2610,20 @@ class Battle extends Dex.ModdedDex {
 
 	// players
 
+	getTeam(team) {
+		const format = this.getFormat();
+		if (!format.team && team) return team;
+
+		if (!this.teamGenerator) {
+			this.teamGenerator = this.getTeamGenerator(format);
+		} else {
+			this.teamGenerator.prng = new PRNG();
+		}
+		team = this.teamGenerator.generateTeam();
+		this.prngSeed.push(...this.teamGenerator.prng.startingSeed);
+
+		return team;
+	}
 	join(slot, name, avatar, team) {
 		if (this.p1 && this.p2) return false;
 		if ((this.p1 && this.p1.name === name) || (this.p2 && this.p2.name === name)) return false;
@@ -2618,6 +2635,7 @@ class Battle extends Dex.ModdedDex {
 			this[slot].name = name;
 		} else {
 			//console.log("NEW SIDE: " + name);
+			team = this.getTeam(team);
 			this[slot] = new Sim.Side(name, this, slotNum, team);
 			this.sides[slotNum] = this[slot];
 		}
