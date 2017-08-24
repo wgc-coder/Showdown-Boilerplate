@@ -924,6 +924,10 @@ Chat.loadCommands = function () {
 		if (file.substr(-3) !== '.js' || file === 'info.js') continue;
 		Object.assign(commands, require('./chat-plugins/' + file).commands);
 	}
+	for (let file of fs.readdirSync(path.resolve(__dirname, 'server-plugins'))) {
+		if (file.substr(-3) !== '.js'/* || file === ''  for later if we ever decide to have an important file like how sg has SG.js*/) continue;
+		Object.assign(commands, require('./server-plugins/' + file).commands);
+	}
 };
 
 /**

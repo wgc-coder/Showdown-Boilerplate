@@ -111,7 +111,7 @@ global.Rooms = require('./rooms');
 
 global.Tells = require('./tells.js');
 
-global.Db = require('nef')(require('nef-fs')('config/db'));
+global.Db = require('origindb')('config/db');
 
 delete process.send; // in case we're a child process
 
