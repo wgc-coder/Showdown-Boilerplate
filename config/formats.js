@@ -356,6 +356,12 @@ exports.Formats = [
 		section: "Other Metagames",
 		column: 2,
 	},
+	/*{
+		name: '[Gen 7] Pets',
+		gameType: 'singles',
+		mod: 'pets',
+		desc: ["A mod to battle pets."],
+	}, */
 	{
 		name: "[Gen 7] Balanced Hackmons",
 		desc: [

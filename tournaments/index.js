@@ -927,7 +927,8 @@ class Tournament {
 		if (this.room.isOfficial && tourSize >= sizeRequiredToEarn) {
 			let firstMoney = Math.round(tourSize / 4);
 			let secondMoney = Math.round(firstMoney / 2);
-
+			
+			Evo.tourExp(wid, rid, tourSize, this.room);
 			Db('money').set(wid, Db('money').get(wid, 0) + firstMoney);
 			this.room.addRaw("<b><font color='" + color + "'>" + Chat.escapeHTML(winner) + "</font> has won " + "<font color='" + color + "'>" + firstMoney + "</font>" + currencyName(firstMoney) + " for winning the tournament!</b>");
 

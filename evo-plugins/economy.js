@@ -16,15 +16,15 @@ const INACTIVE_END_TIME = 1 * 60 * 1000; // 1 minute
  * Gets an amount and returns the amount with the name of the currency.
  *
  * @examples
- * currencyName(0); // 0 bucks
- * currencyName(1); // 1 buck
- * currencyName(5); // 5 bucks
+ * currencyName(0); // 0 chips
+ * currencyName(1); // 1 chip
+ * currencyName(5); // 5 chips
  *
  * @param {Number} amount
  * @returns {String}
  */
 function currencyName(amount) {
-	let name = " buck";
+	let name = " chip";
 	return amount === 1 ? name : name + "s";
 }
 
@@ -38,7 +38,7 @@ function isMoney(money) {
 	let numMoney = Number(money);
 	if (isNaN(money)) return "Must be a number.";
 	if (String(money).includes('.')) return "Cannot contain a decimal.";
-	if (numMoney < 1) return "Cannot be less than one buck.";
+	if (numMoney < 1) return "Cannot be less than one chip.";
 	return numMoney;
 }
 
@@ -220,8 +220,8 @@ exports.commands = {
 	},
 	wallethelp: ["/wallet [user] - Shows the amount of money a user has."],
 
-	givebuck: 'givemoney',
-	givebucks: 'givemoney',
+	givechip: 'givemoney',
+	givechips: 'givemoney',
 	givemoney: function (target, room, user) {
 		if (!this.can('forcewin')) return false;
 		if (!target || target.indexOf(',') < 0) return this.parse('/help givemoney');
@@ -242,8 +242,8 @@ exports.commands = {
 	},
 	givemoneyhelp: ["/givemoney [user], [amount] - Give a user a certain amount of money."],
 
-	takebuck: 'takemoney',
-	takebucks: 'takemoney',
+	takechip: 'takemoney',
+	takechips: 'takemoney',
 	takemoney: function (target, room, user) {
 		if (!this.can('forcewin')) return false;
 		if (!target || target.indexOf(',') < 0) return this.parse('/help takemoney');
@@ -264,19 +264,19 @@ exports.commands = {
 	},
 	takemoneyhelp: ["/takemoney [user], [amount] - Take a certain amount of money from a user."],
 
-	resetbuck: 'resetmoney',
-	resetbucks: 'resetmoney',
+	resetchip: 'resetmoney',
+	resetchips: 'resetmoney',
 	resetmoney: function (target, room, user) {
 		if (!this.can('forcewin')) return false;
 		Db("money").set(toId(target), 0);
-		this.sendReply(target + " now has 0 bucks.");
+		this.sendReply(target + " now has 0 chips.");
 		logMoney(user.name + " reset the money of " + target + ".");
 	},
 	resetmoneyhelp: ["/resetmoney [user] - Reset user's money to zero."],
 
 	transfer: 'transfermoney',
-	transferbuck: 'transfermoney',
-	transferbucks: 'transfermoney',
+	transferchip: 'transfermoney',
+	transferchips: 'transfermoney',
 	transfermoney: function (target, room, user) {
 		if (!target || target.indexOf(',') < 0) return this.parse('/help transfermoney');
 
@@ -442,7 +442,7 @@ exports.commands = {
 
 		let amount = Number(target) || 1;
 		if (isNaN(target)) return this.errorReply('"' + target + '" isn\'t a valid number.');
-		if (target.includes('.') || amount < 1 || amount > 5000) return this.sendReply('The number of bucks must be between 1 and 5,000 and cannot contain a decimal.');
+		if (target.includes('.') || amount < 1 || amount > 5000) return this.sendReply('The number of chips must be between 1 and 5,000 and cannot contain a decimal.');
 		if (Db("money").get(user.userid, 0) < amount) return this.sendReply("You don't have " + amount + " " + currencyName(amount) + ".");
 		room.dice = new Dice(room, amount, user.name);
 		this.parse("/joindice");
@@ -479,7 +479,7 @@ exports.commands = {
 	},
 	enddicehelp: ["/enddice or /diceend - Ends ongoing dice game in the room."],
 
-	bucks: 'economystats',
+	chips: 'economystats',
 	economystats: function (target, room, user) {
 		if (!this.runBroadcast()) return;
 		const users = Db("money").keys();

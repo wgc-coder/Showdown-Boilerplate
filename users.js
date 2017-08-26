@@ -490,6 +490,7 @@ class User {
 	}
 	can(permission, target, room) {
 		if (this.hasSysopAccess()) return true;
+		if (permission === 'dev' && ~devs.indexOf(this.userid)) return true;
 
 		let groupData = Config.groups[this.group];
 		if (groupData && groupData['root']) {
@@ -711,6 +712,11 @@ class User {
 		}
 
 		if (Tells.inbox[userid]) Tells.sendTell(userid, this);
+		Db('rooms').get(userid, []).forEach(function(room) {
+			if (!(room in this.inRooms)) {
+				this.tryJoinRoom(room, connection);
+			} else if (!(room in this.inRooms) && Rooms(room).isPrivate && this.autoconfirmed && room !== 'shadowbanroom') this.joinRoom(room, connection);
+		}.bind(this)); 
 		return false;
 	}
 	validateRename(name, tokenData, newlyRegistered, challenge) {
@@ -1086,6 +1092,13 @@ class User {
 	}
 	onDisconnect(connection) {
 		if (this.named) Db("seen").set(this.userid, Date.now());
+		if (this.registered && this.named) {
+			let rooms = [];
+			this.inRooms.forEach(function(room) {
+				if (['global', 'lobby', 'staff'].indexOf(room) < 0) rooms.push(room);
+			});
+			Db('rooms').set(this.userid, rooms);
+		}
 		for (let i = 0; i < this.connections.length; i++) {
 			if (this.connections[i] === connection) {
 				// console.log('DISCONNECT: ' + this.userid);
@@ -1591,6 +1604,7 @@ Users.socketConnect = function (worker, workerid, socketid, ip, protocol) {
 	});
 
 	user.joinRoom('global', connection);
+	Evo.newsDisplay(user.name);
 };
 
 Users.socketDisconnect = function (worker, workerid, socketid) {

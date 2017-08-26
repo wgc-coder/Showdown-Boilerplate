@@ -4,13 +4,18 @@
   "description": "The server for the Pokémon Showdown battle simulator",
   "version": "0.11.1",
   "dependencies": {
+    "autolinker": "^1.4.3",
     "dem-feels": "^1.8.1",
-    "moment": "2.11.2",
+    "http": "0.0.0",
+    "md5": "^2.2.1",
+    "moment": "^2.11.2",
     "nef": "^1.1.0",
     "nef-fs": "^1.0.0",
     "origindb": "^2.6.1",
+    "path": "^0.12.7",
     "request": "2.74.0",
-    "sockjs": "0.3.18"
+    "sockjs": "0.3.18",
+    "url": "^0.11.0"
   },
   "optionalDependencies": {
     "cloud-env": "0.2.2",

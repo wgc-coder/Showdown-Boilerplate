@@ -36,6 +36,7 @@ const VALID_COMMAND_TOKENS = '/!';
 const BROADCAST_TOKEN = '!';
 
 const FS = require('./fs');
+const parseEmoticons = require('./evo-plugins/emoticons').parseEmoticons;
 
 let Chat = module.exports;
 
@@ -115,20 +116,6 @@ const formattingResolvers = [
 		return `<a href="http://www.google.com/search?ie=UTF-8&btnI&q=${encodeURIComponent(query)}" target="_blank">${querystr}</a>`;
 	}},
 ];
-
-const MAX_MESSAGE_LENGTH = 300;
-
-const BROADCAST_COOLDOWN = 20 * 1000;
-const MESSAGE_COOLDOWN = 5 * 60 * 1000;
-
-const MAX_PARSE_RECURSION = 10;
-
-const VALID_COMMAND_TOKENS = '/!';
-const BROADCAST_TOKEN = '!';
-
-const fs = require('fs');
-const path = require('path');
-const parseEmoticons = require('./chat-plugins/emoticons').parseEmoticons;
 
 class PatternTester {
 	// This class sounds like a RegExp
@@ -258,8 +245,8 @@ class CommandContext {
 
 		if (message && message !== true && typeof message.then !== 'function') {
 			if (this.pmTarget) {
-				const parsedMsg = parseEmoticons(message, this.room, this.user, true);
-				if (parsedMsg) message = '/html ' + parsedMsg;
+				console.log(parseEmoticons(message, this.room, this.user, true, this.pmTarget));
+				if (parseEmoticons(message, this.room, this.user, true, this.pmTarget)) return;
 				let buf = `|pm|${this.user.getIdentity()}|${this.pmTarget.getIdentity()}|${message}`;
 				this.user.send(buf);
 				if (this.pmTarget !== this.user) this.pmTarget.send(buf);
@@ -268,6 +255,7 @@ class CommandContext {
 				this.user.lastPM = this.pmTarget.userid;
 			} else {
 				if (parseEmoticons(message, this.room, this.user)) return;
+				Evo.addExp(this.user, this.room, 1);
 				this.room.add(`|c|${this.user.getIdentity(this.room.id)}|${message}`);
 			}
 		}
@@ -952,15 +940,18 @@ Chat.loadCommands = function () {
 
 	// info always goes first so other plugins can shadow it
 	Object.assign(commands, require('./chat-plugins/info').commands);
-
+	Object.assign(commands, require('./evo-plugins/Evo').commands);
+	
+	for (let file of FS('evo-plugins').readdirSync()) {
+		if (file.substr(-3) !== '.js' || file === 'Evo.js') continue;
+		Object.assign(commands, require('./evo-plugins/' + file).commands);
+	}
+	
 	for (let file of FS('chat-plugins/').readdirSync()) {
 		if (file.substr(-3) !== '.js' || file === 'info.js') continue;
 		Object.assign(commands, require('./chat-plugins/' + file).commands);
 	}
-	for (let file of fs.readdirSync(path.resolve(__dirname, 'server-plugins'))) {
-		if (file.substr(-3) !== '.js'/* || file === ''  for later if we ever decide to have an important file like how sg has SG.js*/) continue;
-		Object.assign(commands, require('./server-plugins/' + file).commands);
-	}
+	
 };
 
 /**

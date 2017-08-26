@@ -4,6 +4,9 @@
 /node_modules
 /eslint-cache
 /chat-plugins/private.js
+/evo-plugins/exp.js
+/evo-plugins/pet-data.js
+/evo-plugins/pets.js
 npm-debug.log
 .eslintcache
 

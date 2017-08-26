@@ -10,9 +10,6 @@ try {
 } catch (e) {
 	console.error(e);
 }
-
-exports.parseEmoticons = parseEmoticons;
-
 // for travis build
 if (typeof demFeels.extendEmotes === 'function') {
 	// example extending emotes
@@ -36,7 +33,7 @@ const emotesKeys = Object.keys(emotes).sort();
 * @param {Boolean} pm - returns a string if it is in private messages
 * @returns {Boolean|String}
 */
-function parseEmoticons(message, room, user, pm) {
+function parseEmoticons(message, room, user, pm, pmTarget) {
 	if (typeof message !== 'string' || (!pm && room.disableEmoticons)) return false;
 
 	let match = false;
@@ -66,18 +63,16 @@ function parseEmoticons(message, room, user, pm) {
 	let group = user.getIdentity().charAt(0);
 	if (room && room.auth) group = room.auth[user.userid] || group;
 	if (pm && !user.hiding) group = user.group;
-
-	if (pm) return "<div class='chat' style='display:inline'>" + "<em class='mine'>" + message + "</em></div>";
-
+	
+	if (pm) return `|pm|${user.getIdentity()}|${pmTarget.getIdentity()}|${message}`;;
+	
 	let style = "background:none;border:0;padding:0 5px 0 0;font-family:Verdana,Helvetica,Arial,sans-serif;font-size:9pt;cursor:pointer";
-	message = "<div class='chat'>" + "<small>" + group + "</small>" + "<button name='parseCommand' value='/user " + user.name + "' style='" + style + "'>" + "<b><font color='" + color(user.userid) + "'>" + user.name + ":</font></b>" + "</button><em class='mine'>" + message + "</em></div>";
-
-	room.addRaw(message);
-
-	room.update();
+	message = room.add(`${(room.type === 'chat' ? '|c:|' + ~~(Date.now() / 1000) + '|' : '|c|') + group + user.name}|/html ${message}`).update();
 
 	return true;
 }
+exports.parseEmoticons = parseEmoticons;
+
 
 /**
 * Create a two column table listing emoticons.

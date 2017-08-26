@@ -92,6 +92,8 @@ if (Config.watchconfig) {
  * Set up most of our globals
  *********************************************************/
 
+global.Evo = {};
+
 global.Monitor = require('./monitor');
 
 global.Dex = require('./sim/dex');
