@@ -206,7 +206,9 @@ class CommandContext {
 			return subcontext.parse();
 		}
 		message = this.message;
-
+	
+		let expTimer = false;
+	
 		let originalRoom = this.room;
 		if (this.room && !(this.user.userid in this.room.users)) {
 			this.room = Rooms.global;
@@ -244,7 +246,6 @@ class CommandContext {
 					message = message.charAt(0) + message;
 				}
 			}
-			let expTimer = false;
 			if (Date.now() > (this.user.lastMessageTime + 10000)) expTimer = true;
 			message = this.canTalk(message);
 		}
