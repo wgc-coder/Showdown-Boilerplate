@@ -280,6 +280,7 @@ exports.commands = {
 			return this.parse('/help msg');
 		}
 		this.pmTarget = (targetUser || this.targetUsername);
+		if (toId(this.targetUsername) === 'evolutionnews') return this.popupReply("No.");
 		if (!targetUser || !targetUser.connected) {
 			if (targetUser && !targetUser.connected) {
 				this.errorReply("User " + this.targetUsername + " is offline.");
@@ -359,7 +360,13 @@ exports.commands = {
 				return this.errorReply("The command '/" + innerCmd + "' was unrecognized or unavailable in private messages. To send a message starting with '/" + innerCmd + "', type '//" + innerCmd + "'.");
 			}
 		}
-
+		
+		let noEmotes = target;
+		let emoticons = Evo.parseEmoticons(target);
+		if (emoticons) {
+			noEmotes = target;
+			target = "/html " + emoticons;
+		}
 		var message = '|pm|' + user.getIdentity() + '|' + targetUser.getIdentity() + '|' + target;
 		user.send(message);
 		if (targetUser !== user) targetUser.send(message);

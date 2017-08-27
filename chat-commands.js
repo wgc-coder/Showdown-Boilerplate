@@ -444,6 +444,8 @@ exports.commands = {
 			connection.send(error);
 			return;
 		}
+		
+		
 		this.pmTarget = targetUser;
 		this.room = undefined;
 
