@@ -634,7 +634,7 @@ exports.commands = {
 	leagues: 'league',
 	league: {
 		create: function (target, room, user) {
-			if (!this.can('leagueadmin')) return false;
+			if (!this.can('declare')) return false;
 			if (!target) return this.errorReply("Usage: /league create [league name], [user]");
 			let targets = target.split(',');
 			for (let u = 0; u < targets.length; u++) targets[u] = targets[u].trim();
@@ -713,7 +713,7 @@ exports.commands = {
 
 
 		delete: function (target, room, user) {
-			if (!this.can('leagueadmin')) return false;
+			if (!this.can('declare')) return false;
 			if (!target) return this.errorReply("Usage: /league delete [league name].");
 			if (!leagues[toId(target)]) return this.errorReply("That league does not exist.");
 
@@ -1627,7 +1627,7 @@ exports.commands = {
 		'point': 'points',
 		points: {
 			give: function (target, room, user) {
-				if (!this.can('leagueadmin')) return false;
+				if (!this.can('declare')) return false;
 				if (!target) return this.errorReply("Usage: /league points give [league], [points]");
 				let targets = target.split(',');
 				for (let u = 0; u < targets.length; u++) targets[u] = targets[u].trim();
@@ -1647,7 +1647,7 @@ exports.commands = {
 			},
 
 			take: function (target, room, user) {
-				if (!this.can('leagueadmin')) return false;
+				if (!this.can('declare')) return false;
 				if (!target) return this.errorReply("Usage: /league points take [league], [points]");
 				let targets = target.split(',');
 				for (let u = 0; u < targets; u++) targets[u] = targets[u].trim();
@@ -1667,7 +1667,7 @@ exports.commands = {
 			},
 
 			reset: function (target, room, user) {
-				if (!this.can('leagueadmin')) return false;
+				if (!this.can('declare')) return false;
 				if (!user.confirmLeaguePointsReset) {
 					this.errorReply("WARNING: THIS WILL RESET ALL LEAGUE POINTS");
 					this.errorReply("Run this command again if you are sure this is what you want to do.");

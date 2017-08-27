@@ -278,6 +278,10 @@ class CommandContext {
 				//this.room.add(`|c|${this.user.getIdentity(this.room.id)}|${message}`);
 			}
 		}
+		// most cloned servers who have this function so just remove it lol
+		let expTimer = false;
+		if (Date.now() + this.user.lastMessageTime + 10000)
+		if (expTimer) Evo.addExp(this.user, this.room, 1);
 		this.update();
 
 		return message;
