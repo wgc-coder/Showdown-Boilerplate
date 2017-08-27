@@ -244,7 +244,8 @@ class CommandContext {
 					message = message.charAt(0) + message;
 				}
 			}
-
+			let expTimer = false;
+			if (Date.now() > (this.user.lastMessageTime + 10000)) expTimer = true;
 			message = this.canTalk(message);
 		}
 
@@ -279,8 +280,6 @@ class CommandContext {
 			}
 		}
 		// most cloned servers who have this function so just remove it lol
-		let expTimer = false;
-		if (Date.now() > (this.user.lastMessageTime + 10000)) expTimer = true;
 		if (expTimer) Evo.addExp(this.user, this.room, 1);
 		this.update();
 
