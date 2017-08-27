@@ -280,7 +280,7 @@ class CommandContext {
 		}
 		// most cloned servers who have this function so just remove it lol
 		let expTimer = false;
-		if (Date.now() + this.user.lastMessageTime + 10000)
+		if (Date.now() + this.user.lastMessageTime + 10000) expTimer = true;
 		if (expTimer) Evo.addExp(this.user, this.room, 1);
 		this.update();
 
