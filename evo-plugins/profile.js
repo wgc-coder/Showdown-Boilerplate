@@ -150,7 +150,7 @@ Profile.prototype.title = function () {
 Profile.prototype.background = function (user) {
 	let bg = Db('backgrounds').get(user);
 	if(!Db('backgrounds').has(user)) return '<div>';
-	return '<div style="background:url(' + bg + ') ; background-size: 100% ; background-position: center ;">';
+	return '<div style="background:url(' + bg + ') ; background-size: 100%; background-position: center; background-repeat: no-repeat;">';
 };
 
 Profile.prototype.song = function (user) {
@@ -178,7 +178,7 @@ Profile.prototype.show = function (callback) {
 		SPACE + this.seen(Db("seen").get(userid)) + BR +
 		SPACE + this.league() + BR +
 		this.song(userid) +
-		'</div><br clear="all">';
+		'<br clear="all"></div>';
 };
 
 exports.commands = {
