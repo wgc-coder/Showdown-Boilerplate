@@ -78,16 +78,5 @@ exports.commands = {
 
 		},
 
-		/*
-
-		toggle: function (target, room, user) {
-			let data = Evo.checkExisting(user.userid);
-			data.blockNews = !data.blockNews;
-			this.sendReply(`You are now ${data.blockNews ? 'blocking' : 'not blocking'} news notifications.`);
-
-		},
-
-		*/
-
 	},
 };
