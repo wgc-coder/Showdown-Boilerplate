@@ -3,22 +3,26 @@
 const fs = require('fs');
 const MAX_ITEMS = 12;
  
-
+function currencyName(_cost){
+    if (_cost == 1){
+        return "chip";
+    } else {
+        return "chips";
+    }
+}
  
 exports.commands = {
-    roomshop: 'leagueshop',
-    leagueshop: {
+    roomshop: {
         enable: function (target, room, user) {
-            if (!this.can('potd')) return false;
+            if (!this.can('editroom', null, room)) return false;
             if (Db('roomshop').has(room.id)) return this.errorReply('Roomshop is already enabled here.');
  
-            Db('roomshop')
-            .set(room.id, {});
+            Db('roomshop').set(room.id, {});
  
             this.sendReply('Roomshop has been enabled here.');
         },
         disable: function (target, room, user) {
-            if (!this.can('eval')) return false;
+            if (!this.can('editroom', null, room)) return false;
             if (!Db('roomshop').has(room.id)) return this.errorReply('Roomshop is not enabled here.');
  
             Db('roomshop').delete(room.id);
@@ -35,8 +39,7 @@ exports.commands = {
  
                 if (!bank) return this.parse('/help roomshop');
  
-                Db('roomshop')
-                .set([room.id, 'Bank'], bank);
+                Db('roomshop').set([room.id, 'Bank'], bank);
  
                 this.sendReply(bank + ' has been made the bank for ' + room.id + '\'s shop.');
             },
@@ -49,8 +52,7 @@ exports.commands = {
  
                 if (!bank) return this.parse('/help roomshop');
  
-                Db('roomshop')
-                .set([room.id, 'Bank'], bank);
+                Db('roomshop').set([room.id, 'Bank'], bank);
  
                 this.sendReply(bank + ' has been made the bank for ' + room.id + '\'s shop.');
             },
@@ -136,8 +138,7 @@ exports.commands = {
                 }
             });
  
-            //this.sendReply('You have bought ' + itemID + ' for ' + cost + currencyName(cost) + '.'); //currencyName(cost)
-              this.sendReply('You have bought ' + itemID + ' for ' + cost + ' chips.');
+            this.sendReply('You have bought ' + itemID + ' for ' + cost + currencyName(cost) + '.'); //currencyName(cost)
         },
         '': function (target, room, user) {
             if (!this.canBroadcast()) return false;
@@ -194,7 +195,7 @@ exports.commands = {
             });
         },
     },
-    roomshophelp: ['Commands for leagueshop/roomshop are:',
+    roomshophelp: ['Commands for roomshop are:',
                     '- /roomshop enable - Enables roomshop for the room. Requires ~',
                     '- /roomshop disable - Disables roomshop for the room. Requires ~',
                     '- /roomshop add [name],[description],[price] - Adds an item to the roomshop. Requires &, #',
