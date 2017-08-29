@@ -7,7 +7,7 @@
 
 let moment = require('moment');
 let request = require('request');
-
+let fs = require('fs');
 let messages = [
 	"has vanished into nothingness!",
 	"used Explosion!",
