@@ -70,14 +70,92 @@ exports.commands = {
 		}
 		connection.popup(buffer.join("\n\n"));
 	},
-
+	
+	credits: function (target, room, user) {
+		let popup = "|html|" + "<font size=5 color=#0066ff><u><b>Evolution Credits</b></u></font><br />" +
+			"<br />" +
+			"<u><b>Server Maintainers:</u></b><br />" +
+			"- " + Evo.nameColor('Bladicon', true) + " (Owner, Sysadmin, Development)<br />" +
+			"- " + Evo.nameColor('wgc', true) + " (Owner, Sysadmin, Development)<br />" +
+			"<br />" +
+			"<u><b>Major Contributors:</b></u><br />" +
+			"- " + Evo.nameColor('Digital Edge', true) + " (CSS)<br />" +
+			"<br />" +
+			"<u><b>Special Thanks:</b></u><br />" +
+			"- Our Staff Members<br />";
+		user.popup(popup);
+	},
+	
 	clearall: function (target, room, user) {
 		if (!this.can('declare')) return false;
 		if (room.battle) return this.sendReply("You cannot clearall in battle rooms.");
 
 		clearRoom(room);
 	},
-
+	globalauth: 'auth',
+	stafflist: 'auth',
+	authlist: 'auth',
+	evoauthlist: 'auth',
+	staff: 'auth',
+	auth: function (target, room, user, connection) {
+		if (target) return this.parse(`/userauth ${target}`);
+		const ignoreUsers = [];
+		fs.readFile('config/usergroups.csv', 'utf8', function (err, data) {
+			let staff = {
+				'admins': [],
+				'leaders': [],
+				'mods': [],
+				'drivers': [],
+				'operators': [],
+				'voices': [],
+			};
+			let row = ('' + data).split('\n');
+			for (let i = row.length; i > -1; i--) {
+				if (!row[i]) continue;
+				let rank = row[i].split(',')[1].replace("\r", '');
+				let person = row[i].split(',')[0];
+				let personId = toId(person);
+				switch (rank) {
+				case '~':
+					if (ignoreUsers.includes(personId)) break;
+					staff['admins'].push(formatName(person));
+					break;
+				case '&':
+					if (ignoreUsers.includes(personId)) break;
+					staff['leaders'].push(formatName(person));
+					break;
+				case '@':
+					if (ignoreUsers.includes(personId)) break;
+					staff['mods'].push(formatName(person));
+					break;
+				case '%':
+					if (ignoreUsers.includes(personId)) break;
+					staff['drivers'].push(formatName(person));
+					break;
+				case '$':
+					if (ignoreUsers.includes(personId)) break;
+					staff['operators'].push(formatName(person));
+					break;
+				case '+':
+					if (ignoreUsers.includes(personId)) break;
+					staff['voices'].push(formatName(person));
+					break;
+				default:
+					continue;
+				}
+			}
+			connection.popup('|html|' +
+				'<h3>Evolution Authority List</h3>' +
+				'<b><u>~Administrator' + Gold.pluralFormat(staff['admins'].length) + ' (' + staff['admins'].length + ')</u></b>:<br />' + staff['admins'].join(', ') +
+				'<br /><b><u>&Leader' + Gold.pluralFormat(staff['leaders'].length) + ' (' + staff['leaders'].length + ')</u></b>:<br />' + staff['leaders'].join(', ') +
+				'<br /><b><u>@Moderators (' + staff['mods'].length + ')</u></b>:<br />' + staff['mods'].join(', ') +
+				'<br /><b><u>%Drivers (' + staff['drivers'].length + ')</u></b>:<br />' + staff['drivers'].join(', ') +
+				'<br /><b><u>$Operators (' + staff['operators'].length + ')</u></b>:<br />' + staff['operators'].join(', ') +
+				'<br /><b><u>+Voices (' + staff['voices'].length + ')</u></b>:<br />' + staff['voices'].join(', ') +
+				'<br /><br />(<b>Bold</b> / <i>italic</i> = currently online)'
+			);
+		});
+	},
 	gclearall: 'globalclearall',
 	globalclearall: function (target, room, user) {
 		if (!this.can('gdeclare')) return false;
