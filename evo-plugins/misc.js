@@ -63,12 +63,12 @@ exports.commands = {
 
 		clearRoom(room);
 	},
-	globalauth: 'auth',
-	stafflist: 'auth',
-	authlist: 'auth',
-	evoauthlist: 'auth',
-	staff: 'auth',
-	auth: function (target, room, user, connection) {
+	globalauth: 'evoauthlist',
+	stafflist: 'evoauthlist',
+	authlist: 'evoauthlist',
+	auth: 'evoauthlist',
+	staff: 'evoauthlist',
+	evoauthlist: function (target, room, user, connection) {
 		if (target) return this.parse(`/userauth ${target}`);
 		const ignoreUsers = [];
 		fs.readFile('config/usergroups.csv', 'utf8', function (err, data) {
