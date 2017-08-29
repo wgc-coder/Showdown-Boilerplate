@@ -283,10 +283,10 @@ exports.commands = {
 		if (toId(this.targetUsername) === 'evolutionnews') return this.popupReply("No.");
 		if (!targetUser || !targetUser.connected) {
 			if (targetUser && !targetUser.connected) {
-				this.errorReply("User " + this.targetUsername + " is offline.");
+				this.popupReply("User " + this.targetUsername + " is offline.");
 				return;
 			} else {
-				this.errorReply("User " + this.targetUsername + " not found. Did you misspell their name?");
+				this.popupReply("User " + this.targetUsername + " not found. Did you misspell their name?");
 				return this.parse('/help msg');
 			}
 			return;
