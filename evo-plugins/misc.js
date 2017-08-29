@@ -42,35 +42,6 @@ function clearRoom(room) {
 }
 
 exports.commands = {
-	stafflist: 'authority',
-	auth: 'authority',
-	authlist: 'authority',
-	authority: function (target, room, user, connection) {
-		let rankLists = {};
-		let ranks = Object.keys(Config.groups);
-		for (let u in Users.usergroups) {
-			let rank = Users.usergroups[u].charAt(0);
-			// In case the usergroups.csv file is not proper, we check for the server ranks.
-			if (ranks.indexOf(rank) > -1) {
-				let name = Users.usergroups[u].substr(1);
-				if (!rankLists[rank]) rankLists[rank] = [];
-				if (name) rankLists[rank].push(((Users.getExact(name) && Users.getExact(name).connected) ? '**' + name + '**' : name));
-			}
-		}
-
-		let buffer = [];
-		Object.keys(rankLists).sort(function (a, b) {
-			return (Config.groups[b] || {rank: 0}).rank - (Config.groups[a] || {rank: 0}).rank;
-		}).forEach(function (r) {
-			buffer.push((Config.groups[r] ? r + Config.groups[r].name + "s (" + rankLists[r].length + ")" : r) + ":\n" + rankLists[r].sort().join(", "));
-		});
-
-		if (!buffer.length) {
-			return connection.popup("This server has no auth.");
-		}
-		connection.popup(buffer.join("\n\n"));
-	},
-	
 	credits: function (target, room, user) {
 		let popup = "|html|" + "<font size=5 color=#0066ff><u><b>Evolution Credits</b></u></font><br />" +
 			"<br />" +
