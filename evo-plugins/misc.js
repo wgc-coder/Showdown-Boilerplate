@@ -22,6 +22,11 @@ let messages = [
 	"was unfortunate and didn't get a cool message.",
 	"{{user}}'s mama accidently kicked {{user}} from the server!",
 ];
+Evo.pluralFormat = function (length, ending) {
+	if (!ending) ending = 's';
+	if (isNaN(Number(length))) return false;
+	return (length === 1 ? '' : ending);
+};
 function formatName(name) {
 	if (Users.getExact(name) && Users(name).connected) {
 		return '<i>' + Evo.nameColor(Users.getExact(name).name, true) + '</i>';
@@ -123,8 +128,8 @@ exports.commands = {
 			}
 			connection.popup('|html|' +
 				'<h3>Evolution Authority List</h3>' +
-				'<b><u>~Administrator' + Gold.pluralFormat(staff['admins'].length) + ' (' + staff['admins'].length + ')</u></b>:<br />' + staff['admins'].join(', ') +
-				'<br /><b><u>&Leader' + Gold.pluralFormat(staff['leaders'].length) + ' (' + staff['leaders'].length + ')</u></b>:<br />' + staff['leaders'].join(', ') +
+				'<b><u>~Administrator' + Evo.pluralFormat(staff['admins'].length) + ' (' + staff['admins'].length + ')</u></b>:<br />' + staff['admins'].join(', ') +
+				'<br /><b><u>&Leader' + Evo.pluralFormat(staff['leaders'].length) + ' (' + staff['leaders'].length + ')</u></b>:<br />' + staff['leaders'].join(', ') +
 				'<br /><b><u>@Moderators (' + staff['mods'].length + ')</u></b>:<br />' + staff['mods'].join(', ') +
 				'<br /><b><u>%Drivers (' + staff['drivers'].length + ')</u></b>:<br />' + staff['drivers'].join(', ') +
 				'<br /><b><u>$Operators (' + staff['operators'].length + ')</u></b>:<br />' + staff['operators'].join(', ') +
