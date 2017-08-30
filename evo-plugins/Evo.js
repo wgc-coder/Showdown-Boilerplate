@@ -1,5 +1,5 @@
 'use strict';
-//We eventually should move all evo globals here
+//We eventually should move all evo globals here.
 const Autolinker = require('autolinker');
 
 Evo.nameColor = function (name, bold, userGroup) {
