@@ -22,7 +22,13 @@ let messages = [
 	"was unfortunate and didn't get a cool message.",
 	"{{user}}'s mama accidently kicked {{user}} from the server!",
 ];
-
+function formatName(name) {
+	if (Users.getExact(name) && Users(name).connected) {
+		return '<i>' + Evo.nameColor(Users.getExact(name).name, true) + '</i>';
+	} else {
+		return Evo.nameColor(name, false);
+	}
+}
 function clearRoom(room) {
 	let len = (room.log && room.log.length) || 0;
 	let users = [];
