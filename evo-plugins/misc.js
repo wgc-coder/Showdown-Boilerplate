@@ -17,6 +17,7 @@ let messages = [
 	"was forced to give StevoDuhHero's mom an oil massage!",
 	"was hit by Magikarp's Revenge!",
 	"ate a bomb!",
+	"just left.",
 	"fell into a put of lava!",
 	"tripped into a pool of acid!",
 	"laid in a cactus farm.",
