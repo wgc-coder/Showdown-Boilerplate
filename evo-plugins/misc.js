@@ -10,6 +10,7 @@ let request = require('request');
 let fs = require('fs');
 let messages = [
 	"has vanished into nothingness!",
+	"was shocked by a Pikachu!",
 	"used Explosion!",
 	"fell into the void.",
 	"went into a cave without a repel!",
