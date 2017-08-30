@@ -18,6 +18,8 @@ let messages = [
 	"was hit by Magikarp's Revenge!",
 	"ate a bomb!",
 	"just left.",
+	"choked on a piece of pie!",
+	"ran a marathon... then died.",
 	"fell into a put of lava!",
 	"tripped into a pool of acid!",
 	"laid in a cactus farm.",
