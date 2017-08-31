@@ -334,4 +334,119 @@ exports.commands = {
 			"|/text This user is currently offline. Your message will be delivered when they are next online.");
 	},
 	tellhelp: ["/tell [username], [message] - Send a message to an offline user that will be received when they log in."],
+		plock: function (target, room, user, connection, cmd) {
+		if (!this.can('declare')) return false;
+		if (!target) return this.parse('/help pban');
+		target = this.splitTarget(target);
+		let targetUser = this.targetUser;
+		if (!targetUser) return this.errorReply("User '" + this.targetUsername + "' not found.");
+		if (target.length > 300) {
+			return this.errorReply("The reason is too long. It cannot exceed " + 300 + " characters.");
+		}
+		if (!this.can('lock', targetUser)) return false;
+		let name = targetUser.getLastName();
+		let userid = targetUser.getLastId();
+		if (Punishments.getPunishType(userid) === 'LOCKED' && !target && !targetUser.connected) {
+			let problem = " but was already locked";
+			return this.privateModCommand("(" + name + " would be permanently banned by " + user.name + problem + ".)");
+		}
+		if (targetUser.confirmed) {
+			let from = targetUser.deconfirm();
+			Monitor.log("[CrisisMonitor] " + name + " was permanently banned by " + user.name + " and demoted from " + from.join(", ") + ".");
+			this.globalModlog("CRISISDEMOTE", targetUser, " from " + from.join(", "));
+		}
+		// Destroy personal rooms of the banned user.
+		for (let i in targetUser.roomCount) {
+			if (i === 'global') continue;
+			let targetRoom = Rooms.get(i);
+			if (targetRoom.isPersonal && targetRoom.auth[userid] && targetRoom.auth[userid] === '#') {
+				targetRoom.destroy();
+			}
+		}
+		targetUser.popup("|modal|" + user.name + " has permanently banned you." + (target ? "\n\nReason: " + target : "") + (Config.appealurl ? "\n\nIf you feel that your lock was unjustified, you can appeal:\n" + Config.appealurl : "") + "\n\nYour lock is permanent.");
+		this.addModCommand("" + name + " was permanently banned by " + user.name + "." + (target ? " (" + target + ")" : ""), " (" + targetUser.latestIp + ")");
+		let alts = targetUser.getAltUsers();
+		let acAccount = (targetUser.autoconfirmed !== userid && targetUser.autoconfirmed);
+		if (alts.length) {
+			let guests = alts.length;
+			alts = alts.filter(alt => alt.substr(0, 7) !== '[Guest ');
+			guests -= alts.length;
+			this.privateModCommand("(" + name + "'s " + (acAccount ? " ac account: " + acAccount + ", " : "") + "banned alts: " + alts.join(", ") + (guests ? " [" + guests + " guests]" : "") + ")");
+			for (let i = 0; i < alts.length; ++i) {
+				this.add('|unlink|' + toId(alts[i]));
+			}
+		} else if (acAccount) {
+			this.privateModCommand("(" + name + "'s ac account: " + acAccount + ")");
+		}
+
+		this.add('|unlink|hide|' + userid);
+		this.add('|uhtmlchange|' + userid + '|');
+		if (userid !== toId(this.inputUsername)) {
+			this.add('|unlink|hide|' + toId(this.inputUsername));
+			this.add('|uhtmlchange|' + toId(this.inputUsername) + '|');
+		}
+
+		Punishments.lock(targetUser, 365 * 24 * 60 * 60 * 1000, null, target);
+		this.globalModlog("PERMALOCK", targetUser, " by " + user.name + (target ? ": " + target : ""));
+		return true;
+	},
+	plockhelp: ["/plock - Permanently locks a user."],
+	
+	pban: function (target, room, user, connection, cmd) {
+		if (!this.can('declare')) return false;
+		if (!target) return this.parse('/help pban');
+		target = this.splitTarget(target);
+		let targetUser = this.targetUser;
+		if (!targetUser) return this.errorReply("User '" + this.targetUsername + "' not found.");
+		if (target.length > 300) {
+			return this.errorReply("The reason is too long. It cannot exceed " + 300 + " characters.");
+		}
+		if (!this.can('ban', targetUser)) return false;
+		let name = targetUser.getLastName();
+		let userid = targetUser.getLastId();
+		if (Punishments.getPunishType(userid) === 'BANNED' && !target && !targetUser.connected) {
+			let problem = " but was already banned";
+			return this.privateModCommand("(" + name + " would be permanently banned by " + user.name + problem + ".)");
+		}
+		if (targetUser.confirmed) {
+			let from = targetUser.deconfirm();
+			Monitor.log("[CrisisMonitor] " + name + " was permanently banned by " + user.name + " and demoted from " + from.join(", ") + ".");
+			this.globalModlog("CRISISDEMOTE", targetUser, " from " + from.join(", "));
+		}
+		// Destroy personal rooms of the banned user.
+		for (let i in targetUser.roomCount) {
+			if (i === 'global') continue;
+			let targetRoom = Rooms.get(i);
+			if (targetRoom.isPersonal && targetRoom.auth[userid] && targetRoom.auth[userid] === '#') {
+				targetRoom.destroy();
+			}
+		}
+		targetUser.popup("|modal|" + user.name + " has permanently banned you." + (target ? "\n\nReason: " + target : "") + (Config.appealurl ? "\n\nIf you feel that your ban was unjustified, you can appeal:\n" + Config.appealurl : "") + "\n\nYour ban is permanent.");
+		this.addModCommand("" + name + " was permanently banned by " + user.name + "." + (target ? " (" + target + ")" : ""), " (" + targetUser.latestIp + ")");
+		let alts = targetUser.getAltUsers();
+		let acAccount = (targetUser.autoconfirmed !== userid && targetUser.autoconfirmed);
+		if (alts.length) {
+			let guests = alts.length;
+			alts = alts.filter(alt => alt.substr(0, 7) !== '[Guest ');
+			guests -= alts.length;
+			this.privateModCommand("(" + name + "'s " + (acAccount ? " ac account: " + acAccount + ", " : "") + "banned alts: " + alts.join(", ") + (guests ? " [" + guests + " guests]" : "") + ")");
+			for (let i = 0; i < alts.length; ++i) {
+				this.add('|unlink|' + toId(alts[i]));
+			}
+		} else if (acAccount) {
+			this.privateModCommand("(" + name + "'s ac account: " + acAccount + ")");
+		}
+
+		this.add('|unlink|hide|' + userid);
+		this.add('|uhtmlchange|' + userid + '|');
+		if (userid !== toId(this.inputUsername)) {
+			this.add('|unlink|hide|' + toId(this.inputUsername));
+			this.add('|uhtmlchange|' + toId(this.inputUsername) + '|');
+		}
+
+		Punishments.ban(targetUser, 365 * 24 * 60 * 60 * 1000, null, target);
+		this.globalModlog("PERMABAN", targetUser, " by " + user.name + (target ? ": " + target : ""));
+		return true;
+	},
+	pbanhelp: ["/pban - Permanently bans a user."],
 };
