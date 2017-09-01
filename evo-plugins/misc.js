@@ -334,9 +334,10 @@ exports.commands = {
 			"|/text This user is currently offline. Your message will be delivered when they are next online.");
 	},
 	tellhelp: ["/tell [username], [message] - Send a message to an offline user that will be received when they log in."],
-		plock: function (target, room, user, connection, cmd) {
+	
+	plock: function (target, room, user, connection, cmd) {
 		if (!this.can('declare')) return false;
-		if (!target) return this.parse('/help pban');
+		if (!target) return this.parse('/help plock');
 		target = this.splitTarget(target);
 		let targetUser = this.targetUser;
 		if (!targetUser) return this.errorReply("User '" + this.targetUsername + "' not found.");
