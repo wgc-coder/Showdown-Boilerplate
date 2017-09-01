@@ -349,14 +349,14 @@ exports.commands = {
 		let userid = targetUser.getLastId();
 		if (Punishments.getPunishType(userid) === 'LOCKED' && !target && !targetUser.connected) {
 			let problem = " but was already locked";
-			return this.privateModCommand("(" + name + " would be permanently banned by " + user.name + problem + ".)");
+			return this.privateModCommand("(" + name + " would be permanently locked by " + user.name + problem + ".)");
 		}
 		if (targetUser.confirmed) {
 			let from = targetUser.deconfirm();
-			Monitor.log("[CrisisMonitor] " + name + " was permanently banned by " + user.name + " and demoted from " + from.join(", ") + ".");
+			Monitor.log("[CrisisMonitor] " + name + " was permanently locked by " + user.name + " and demoted from " + from.join(", ") + ".");
 			this.globalModlog("CRISISDEMOTE", targetUser, " from " + from.join(", "));
 		}
-		// Destroy personal rooms of the banned user.
+		// Destroy personal rooms of the locked user.
 		for (let i in targetUser.roomCount) {
 			if (i === 'global') continue;
 			let targetRoom = Rooms.get(i);
@@ -364,15 +364,15 @@ exports.commands = {
 				targetRoom.destroy();
 			}
 		}
-		targetUser.popup("|modal|" + user.name + " has permanently banned you." + (target ? "\n\nReason: " + target : "") + (Config.appealurl ? "\n\nIf you feel that your lock was unjustified, you can appeal:\n" + Config.appealurl : "") + "\n\nYour lock is permanent.");
-		this.addModCommand("" + name + " was permanently banned by " + user.name + "." + (target ? " (" + target + ")" : ""), " (" + targetUser.latestIp + ")");
+		targetUser.popup("|modal|" + user.name + " has permanently locked you." + (target ? "\n\nReason: " + target : "") + (Config.appealurl ? "\n\nIf you feel that your lock was unjustified, you can appeal:\n" + Config.appealurl : "") + "\n\nYour lock is permanent.");
+		this.addModCommand("" + name + " was permanently locked by " + user.name + "." + (target ? " (" + target + ")" : ""), " (" + targetUser.latestIp + ")");
 		let alts = targetUser.getAltUsers();
 		let acAccount = (targetUser.autoconfirmed !== userid && targetUser.autoconfirmed);
 		if (alts.length) {
 			let guests = alts.length;
 			alts = alts.filter(alt => alt.substr(0, 7) !== '[Guest ');
 			guests -= alts.length;
-			this.privateModCommand("(" + name + "'s " + (acAccount ? " ac account: " + acAccount + ", " : "") + "banned alts: " + alts.join(", ") + (guests ? " [" + guests + " guests]" : "") + ")");
+			this.privateModCommand("(" + name + "'s " + (acAccount ? " ac account: " + acAccount + ", " : "") + "locke alts: " + alts.join(", ") + (guests ? " [" + guests + " guests]" : "") + ")");
 			for (let i = 0; i < alts.length; ++i) {
 				this.add('|unlink|' + toId(alts[i]));
 			}
