@@ -1347,8 +1347,10 @@ class ChatRoom extends Room {
 		} else {
 			this.reportJoin('n', user.getIdentity(this.id) + '|' + oldid);
 		}
+		if (this.poll) {
 		for (let u in this.poll.pollArray) {
 			if (this.poll && user.userid in this.poll.pollArray[u].voters) this.poll.updateFor(user);
+			}
 		}
 		return user;
 	}
